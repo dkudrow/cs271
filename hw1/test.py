@@ -13,12 +13,13 @@ def serverTime(host):
 
 def main():
     while True:
-        sys.stdout.write("%.6f " % (time.time()))
+        send_time = time.time()
+        sys.stdout.write("%.6f " % (send_time-int(send_time/1000)*1000))
         for host in HOST:
-            sys.stdout.write("%.6f " % (serverTime(host)))
-        sys.stdout.write("%.6f\n" % (time.time()))
+            server_time = serverTime(host)
+            sys.stdout.write("%.6f " % (server_time-int(server_time/1000)*1000))
         time.sleep(1)
-
+        print ""
 
 if __name__ == '__main__':
     main()
