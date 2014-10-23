@@ -3,8 +3,11 @@
 import socket, sys, time 
 from operator import attrgetter, itemgetter
 
-HOST = [ '54.169.67.45', '54.207.15.207', '54.191.73.92' ]
-PORT = 5000
+SERVERS = [ ('54.169.67.45', 5000),
+                ('54.207.15.207', 5000),
+                ('54.191.73.92', 5000),
+                ('54.172.168.244', 5000),
+                ('128.111.44.106', 12291) ]
 
 class TimeServerResp:
     def __init__(self, t, rtt, sent):
@@ -23,7 +26,7 @@ class TimeServer:
 
     def query(self):
         send_time = time.time()
-        TimeServer.sock.sendto("\n", (self.host, PORT))
+        TimeServer.sock.sendto("\n", self.host)
         server_time = TimeServer.sock.recv(4096)
         recv_time = time.time()
         return TimeServerResp(float(server_time), recv_time-send_time, send_time)
@@ -39,35 +42,34 @@ class Clock:
 
     def syncMarzullo(self, resp):
         # populate list of tuples
+        currentTime = time.time()
         windows = []
         for r in resp:
             windows.append((r.time()-0.5*r.rtt, -1))
             windows.append((r.time()+0.5*r.rtt, +1))
 
         # sort listof tuples
-        windows.sort(key=itemgetter(1))
+        windows.sort()
 
         # initialize best, cnt
         best, cnt = 0, 0
 
         # loop in ascending order
-        for i in range(len(tup)):
+        for i in range(len(windows)):
             cnt = cnt - windows[i][1]
             if cnt > best:
                 best = cnt
                 beststart = windows[i][0]
                 bestend = windows[i+1][0]
 
-        self.skew = minResp.t - minResp.sent - 0.5*minResp.rtt
-        
-
+        self.skew = currentTime - (beststart + 0.5*(bestend-beststart))
 
     def time(self):
         return time.time() + self.skew
 
 def main():
     clock = Clock()
-    servers = [TimeServer(host) for host in HOST]
+    servers = [TimeServer(s) for s in SERVERS]
 
     while True:
         resp = [s.query() for s in servers]
