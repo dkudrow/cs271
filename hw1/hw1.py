@@ -1,7 +1,10 @@
-# hw1.py -- CS 271 Assn. 1
+# hw1.py -- CS 271 HW #1
+#
+# Author: Daniel Kudrow
+# Due: Oct. 24 2014
 
 import socket, sys, time 
-from operator import attrgetter, itemgetter
+from operator import attrgetter
 
 SERVERS = [ ('54.169.67.45', 5000),
                 ('54.207.15.207', 5000),
