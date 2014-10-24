@@ -70,8 +70,9 @@ class Clock:
         currentTime = time.time()
         windows = []
         for r in resp:
-            windows.append((r.time()-0.5*r.rtt, -1))
-            windows.append((r.time()+0.5*r.rtt, +1))
+            t = r.time()
+            windows.append((t-0.5*r.rtt, -1))
+            windows.append((t+0.5*r.rtt, +1))
 
         # sort listof tuples
         windows.sort()
@@ -92,6 +93,9 @@ class Clock:
     # get the clock's virtual time
     def time(self):
         return time.time() + self.skew
+
+def detect_interval(delta):
+    return
 
 def main():
     # initialize clock and time servers
