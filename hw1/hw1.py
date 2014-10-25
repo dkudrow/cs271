@@ -12,10 +12,9 @@ SERVERS = [ ('54.169.67.45', 5000),
                 ('54.172.168.244', 5000),
                 ('128.111.44.106', 12291) ]
 
-#
-# This class contains the rount-trip time of the request, the server
-# timestamp and uses the physical clock to calculate the current time at
-# the time server (subject to the local clock drift).
+######################################################################
+# This class wraps the timeserver's response. It also approximates the
+# timeserver's current time.
 #
 class TimeServerResp:
     # construct a server response
@@ -27,8 +26,10 @@ class TimeServerResp:
     # return current time on server
     def time(self):
         return time.time()-(self.sent+0.5*self.rtt)+self.t
-
 #
+######################################################################
+
+######################################################################
 # This class wraps a hostname and port tuple that can be queried for a Unix
 # timestamp.
 #
@@ -47,12 +48,14 @@ class TimeServer:
         server_time = TimeServer.sock.recv(4096)
         recv_time = time.time()
         return TimeServerResp(float(server_time), recv_time-send_time, send_time)
-
 #
-# This class is a virtual clock. All it really does is keep track of a
+######################################################################
+
+######################################################################
+# This class acts as a virtual clock. All it really does is keep track of a
 # 'skew' which can be added to the physical clock to create virtual time.
 # The syncXXX methods can be used to synchronize the clock using a list of
-# TimeServerResps.
+# timeserver responses.
 #
 class Clock:
     # construct a new clock -- it starts as a copy of the physical clock
@@ -98,7 +101,10 @@ class Clock:
     # get the clock's virtual time
     def time(self):
         return time.time() + self.skew
+#
+######################################################################
 
+# make things look nice for Victor
 def format_time(t):
     ret = time.strftime('%H:%M:', time.localtime(t))
     return ret + "%07.4f" % ((t-int(t)/100*100) % 60)
@@ -150,12 +156,18 @@ def main():
         server_time = [r.time() for r in resp]
         updated_time = clock.time()
         delta = updated_time - current_time
+
+        # print
         sys.stdout.write("%s\t" % (format_time(current_time)))
         for i in range(len(resp)):
             sys.stdout.write("%s\t%.4f\t" % (format_time(server_time[i]), resp[i].rtt))
         sys.stdout.write("%s\n" % (format_time(updated_time)))
 
-        time.sleep(resync_interval-(time.time()-begin_loop))
+        # only sleep as long as we need to
+        sleep_time = resync_interval-(time.time()-begin_loop)
+        if sleep_time > 0:
+            time.sleep(sleep_time)
 
 if __name__ == '__main__':
     main()
+
