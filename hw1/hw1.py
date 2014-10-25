@@ -94,8 +94,9 @@ class Clock:
     def time(self):
         return time.time() + self.skew
 
-def detect_interval(delta):
-    return
+def format_time(t):
+    ret = time.strftime('%H:%M:', time.localtime(t))
+    return ret + "%07.4f" % ((t-int(t)/100*100) % 60)
 
 def main():
     # initialize clock and time servers
@@ -124,22 +125,28 @@ def main():
                 print 'WARNING: bad sync method, default to marzullo'
                 sync_method = clock.syncMarzullo
 
+    # print header
+    header = "Curent Time\t"
+    for i in range(1, len(SERVERS)+1):
+        header += 'Server %d Time\tRTT\t' % (i)
+    header += 'Updated Time'
+    print header
+
     # main loop
     while True:
+        begin_loop = time.time()
         resp = [s.query() for s in servers]
         current_time = clock.time()
         sync_method(resp)
         server_time = [r.time() for r in resp]
         updated_time = clock.time()
         delta = updated_time - current_time
-        sys.stdout.write("%f " % (current_time-int(current_time/1000)*1000))
-        for t in server_time:
-            sys.stdout.write("%f " % (t-int(t/1000)*1000))
-        sys.stdout.write("%f " % (updated_time-int(updated_time/1000)*1000))
-        sys.stdout.write("%f\n" % (clock.skew))
+        sys.stdout.write("%s\t" % (format_time(current_time)))
+        for i in range(len(resp)):
+            sys.stdout.write("%s\t%.4f\t" % (format_time(server_time[i]), resp[i].rtt))
+        sys.stdout.write("%s\n" % (format_time(updated_time)))
 
-        time.sleep(resync_interval)
-
+        time.sleep(resync_interval-(time.time()-begin_loop))
 
 if __name__ == '__main__':
     main()
