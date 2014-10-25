@@ -56,8 +56,13 @@ class TimeServer:
 #
 class Clock:
     # construct a new clock -- it starts as a copy of the physical clock
-    def __init__(self):
+    def __init__(self, drift=15):
         self.skew = 0.0
+        self.drift = drift
+
+    # determine necessary synv interval to keep drift < delta ms/min
+    def interval(self, delta=1):
+        return 60.0 * delta / (self.drift * 2)
 
     # synchronize the clock to the closest time server (lowest RTT)
     def syncMinRTT(self, resp):
@@ -104,7 +109,7 @@ def main():
     servers = [TimeServer(s) for s in SERVERS]
 
     # set defaults
-    resync_interval = 2
+    resync_interval = clock.interval()
     sync_method = clock.syncMarzullo
 
     # parse command line args
@@ -124,6 +129,10 @@ def main():
             else:
                 print 'WARNING: bad sync method, default to marzullo'
                 sync_method = clock.syncMarzullo
+
+    # print parameters
+    print "Resyncs per minute to keep drift < 1 ms/min: ", clock.interval()
+    print "Resyncs per minute to keep drift < 1 us/min: ", clock.interval(delta=.001)
 
     # print header
     header = "Curent Time\t"
