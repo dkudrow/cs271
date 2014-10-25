@@ -1,0 +1,17 @@
+# CS 271 -- Homework #1
+Due: Oct. 24, 2014
+
+Daniel Kudrow
+dkudrow@cs.uscb.edu
+
+### Usage
+**Note: running with no arguments will use the default settings described
+in the assignment**
+
+The usage is,
+
+	python hw1.py [-i <sync_interval>] [-s <sync_method>]
+
+where `sync_interval` can be any floating point number and sync method can
+be `m` for Marzullo's Algorithm or `r` for nearest timeserver. Running with
+
